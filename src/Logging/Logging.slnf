@@ -1,0 +1,41 @@
+{
+  "solution": {
+    "path": "C:\\Code\\aspnet\\Extensions\\Extensions.sln",
+    "projects": [
+      "src\\Configuration\\Config.Abstractions\\src\\Microsoft.Extensions.Configuration.Abstractions.csproj",
+      "src\\Configuration\\Config.Binder\\src\\Microsoft.Extensions.Configuration.Binder.csproj",
+      "src\\Configuration\\Config.EnvironmentVariables\\src\\Microsoft.Extensions.Configuration.EnvironmentVariables.csproj",
+      "src\\Configuration\\Config.FileExtensions\\src\\Microsoft.Extensions.Configuration.FileExtensions.csproj",
+      "src\\Configuration\\Config.Json\\src\\Microsoft.Extensions.Configuration.Json.csproj",
+      "src\\Configuration\\Config\\src\\Microsoft.Extensions.Configuration.csproj",
+      "src\\DependencyInjection\\DI.Abstractions\\src\\Microsoft.Extensions.DependencyInjection.Abstractions.csproj",
+      "src\\DependencyInjection\\DI\\src\\Microsoft.Extensions.DependencyInjection.csproj",
+      "src\\FileProviders\\Abstractions\\src\\Microsoft.Extensions.FileProviders.Abstractions.csproj",
+      "src\\FileProviders\\Physical\\src\\Microsoft.Extensions.FileProviders.Physical.csproj",
+      "src\\FileSystemGlobbing\\src\\Microsoft.Extensions.FileSystemGlobbing.csproj",
+      "src\\Logging\\Logging.Abstractions\\src\\Microsoft.Extensions.Logging.Abstractions.csproj",
+      "src\\Logging\\Logging.Analyzers\\src\\Microsoft.Extensions.Logging.Analyzers.csproj",
+      "src\\Logging\\Logging.Analyzers\\test\\Microsoft.Extensions.Logging.Analyzer.Tests.csproj",
+      "src\\Logging\\Logging.AzureAppServices\\src\\Microsoft.Extensions.Logging.AzureAppServices.csproj",
+      "src\\Logging\\Logging.AzureAppServices\\test\\Microsoft.Extensions.Logging.AzureAppServices.Tests.csproj",
+      "src\\Logging\\Logging.Configuration\\src\\Microsoft.Extensions.Logging.Configuration.csproj",
+      "src\\Logging\\Logging.Console\\src\\Microsoft.Extensions.Logging.Console.csproj",
+      "src\\Logging\\Logging.Debug\\src\\Microsoft.Extensions.Logging.Debug.csproj",
+      "src\\Logging\\Logging.EventLog\\src\\Microsoft.Extensions.Logging.EventLog.csproj",
+      "src\\Logging\\Logging.EventSource\\src\\Microsoft.Extensions.Logging.EventSource.csproj",
+      "src\\Logging\\Logging.EventSource\\test\\Microsoft.Extensions.Logging.EventSource.Tests.csproj",
+      "src\\Logging\\Logging.Testing\\src\\Microsoft.Extensions.Logging.Testing.csproj",
+      "src\\Logging\\Logging.Testing\\test\\Microsoft.Extensions.Logging.Testing.Tests.csproj",
+      "src\\Logging\\Logging.TraceSource\\src\\Microsoft.Extensions.Logging.TraceSource.csproj",
+      "src\\Logging\\Logging\\perf\\Microsoft.Extensions.Logging.Performance.csproj",
+      "src\\Logging\\Logging\\src\\Microsoft.Extensions.Logging.csproj",
+      "src\\Logging\\samples\\SampleApp\\SampleApp.csproj",
+      "src\\Logging\\test\\Microsoft.Extensions.Logging.Tests.csproj",
+      "src\\Options\\ConfigurationExtensions\\src\\Microsoft.Extensions.Options.ConfigurationExtensions.csproj",
+      "src\\Options\\Options\\src\\Microsoft.Extensions.Options.csproj",
+      "src\\Primitives\\src\\Microsoft.Extensions.Primitives.csproj",
+      "src\\TestingUtils\\Microsoft.AspNetCore.Analyzer.Testing\\src\\Microsoft.AspNetCore.Analyzer.Testing.csproj",
+      "src\\TestingUtils\\Microsoft.AspNetCore.Testing\\src\\Microsoft.AspNetCore.Testing.csproj"
+    ]
+  }
+}
