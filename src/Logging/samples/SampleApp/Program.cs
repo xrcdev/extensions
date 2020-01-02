@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace SampleApp
@@ -28,7 +29,10 @@ namespace SampleApp
                     .AddFilter("Microsoft", LogLevel.Warning)
                     .AddFilter("System", LogLevel.Warning)
                     .AddFilter("SampleApp.Program", LogLevel.Debug)
-                    .AddConsole()
+                    .AddConsole(options =>
+                    {
+                        options.Formatter = new SingleLineConsoleFormatter("HH:mm:ss", useUtcTimestamp: false, disableColors: false);
+                    })
                     .AddEventLog();
             });
 

@@ -11,7 +11,7 @@ namespace Microsoft.Extensions.Logging.Console
     {
         private const int _maxQueuedMessages = 1024;
 
-        private readonly BlockingCollection<LogMessageEntry> _messageQueue = new BlockingCollection<LogMessageEntry>(_maxQueuedMessages);
+        private readonly BlockingCollection<(ConsoleLoggerEvent, IConsoleLoggerFormatter)> _messageQueue = new BlockingCollection<(ConsoleLoggerEvent, IConsoleLoggerFormatter)>(_maxQueuedMessages);
         private readonly Thread _outputThread;
 
         public IConsole Console;
@@ -28,13 +28,13 @@ namespace Microsoft.Extensions.Logging.Console
             _outputThread.Start();
         }
 
-        public virtual void EnqueueMessage(LogMessageEntry message)
+        public virtual void EnqueueMessage(ConsoleLoggerEvent message, IConsoleLoggerFormatter formatter)
         {
             if (!_messageQueue.IsAddingCompleted)
             {
                 try
                 {
-                    _messageQueue.Add(message);
+                    _messageQueue.Add((message, formatter));
                     return;
                 }
                 catch (InvalidOperationException) { }
@@ -43,27 +43,18 @@ namespace Microsoft.Extensions.Logging.Console
             // Adding is completed so just log the message
             try
             {
-                WriteMessage(message);            
+                WriteMessage(message, formatter);
             }
             catch (Exception) { }
         }
 
         // for testing
-        internal virtual void WriteMessage(LogMessageEntry message)
+        internal virtual void WriteMessage(ConsoleLoggerEvent message, IConsoleLoggerFormatter formatter)
         {
-            var console = message.LogAsError ? ErrorConsole : Console;
+            var console = message.WriteToStandardError ? ErrorConsole : Console;
 
-            if (message.TimeStamp != null)
-            {
-                console.Write(message.TimeStamp, message.MessageColor, message.MessageColor);
-            }
+            formatter.Format(message, console);
 
-            if (message.LevelString != null)
-            {
-                console.Write(message.LevelString, message.LevelBackground, message.LevelForeground);
-            }
-
-            console.Write(message.Message, message.MessageColor, message.MessageColor);
             console.Flush();
         }
 
@@ -71,9 +62,9 @@ namespace Microsoft.Extensions.Logging.Console
         {
             try
             {
-                foreach (var message in _messageQueue.GetConsumingEnumerable())
+                foreach (var (message, formatter) in _messageQueue.GetConsumingEnumerable())
                 {
-                    WriteMessage(message);
+                    WriteMessage(message, formatter);
                 }
             }
             catch

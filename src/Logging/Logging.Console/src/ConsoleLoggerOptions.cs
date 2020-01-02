@@ -39,6 +39,11 @@ namespace Microsoft.Extensions.Logging.Console
         }
 
         /// <summary>
+        /// Gets or sets the <see cref="IConsoleLoggerFormatter"/> that will be used to write the message to the console. If specified, this overrides the value of <see cref="Format"/>.
+        /// </summary>
+        public IConsoleLoggerFormatter Formatter { get; set; }
+
+        /// <summary>
         /// Gets or sets value indicating the minimum level of messaged that would get written to <c>Console.Error</c>.
         /// </summary>
         public LogLevel LogToStandardErrorThreshold { get; set; } = LogLevel.None;

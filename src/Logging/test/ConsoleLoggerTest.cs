@@ -1241,9 +1241,9 @@ namespace Microsoft.Extensions.Logging.Test
             {
             }
 
-            public override void EnqueueMessage(LogMessageEntry message)
+            public override void EnqueueMessage(ConsoleLoggerEvent message, IConsoleLoggerFormatter formatter)
             {
-                WriteMessage(message);
+                WriteMessage(message, formatter);
             }
         }
     }
