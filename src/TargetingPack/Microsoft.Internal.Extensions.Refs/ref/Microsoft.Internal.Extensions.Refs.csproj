@@ -3,9 +3,8 @@
   <PropertyGroup>
     <TargetFramework>$(DefaultNetCoreTargetFramework)</TargetFramework>
 
-    <!-- Do not pack in servicing builds. -->
-    <IsPackable>false</IsPackable>
-    <IsPackable Condition=" '$(PatchVersion)' == '0' ">true</IsPackable>
+    <!-- Always pack this, since it's only used internally -->
+    <IsPackable>true</IsPackable>
     <IsShipping>false</IsShipping>
     <!-- This project is not included in the shared framework -->
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
