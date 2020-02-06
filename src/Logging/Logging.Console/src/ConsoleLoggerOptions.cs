@@ -35,8 +35,13 @@ namespace Microsoft.Extensions.Logging.Console
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
                 _format = value;
-            }
+            } 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Formatter { get; set; }
 
         /// <summary>
         /// Gets or sets value indicating the minimum level of messaged that would get written to <c>Console.Error</c>.
