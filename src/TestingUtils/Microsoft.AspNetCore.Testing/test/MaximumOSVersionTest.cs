@@ -4,11 +4,15 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Testing
 {
+#if !NET472
+    [SupportedOSPlatform("windows")]
+#endif
     [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
     public class MaximumOSVersionTest
     {
@@ -34,6 +38,7 @@ namespace Microsoft.AspNetCore.Testing
         }
 
         [ConditionalFact]
+        [FrameworkSkipCondition(RuntimeFrameworks.CLR, SkipReason = "https://github.com/xunit/xunit/issues/2076")]
         [MaximumOSVersion(OperatingSystems.Windows, WindowsVersions.Win10_RS4)]
         [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
         public void RunTest_Win10_RS4()
@@ -43,10 +48,11 @@ namespace Microsoft.AspNetCore.Testing
             Assert.NotNull(versionKey);
             var currentVersion = (string)versionKey.GetValue("CurrentBuildNumber");
             Assert.NotNull(currentVersion);
-            Assert.True(17134 >= int.Parse(currentVersion));
+            Assert.True(17134 >= int.Parse(currentVersion), $"Unexpected build number {currentVersion} on {Environment.OSVersion.Version}.");
         }
 
         [ConditionalFact]
+        [FrameworkSkipCondition(RuntimeFrameworks.CLR, SkipReason = "https://github.com/xunit/xunit/issues/2076")]
         [MaximumOSVersion(OperatingSystems.Windows, WindowsVersions.Win10_19H2)]
         [OSSkipCondition(OperatingSystems.Linux | OperatingSystems.MacOSX)]
         public void RunTest_Win10_19H2()
@@ -56,7 +62,7 @@ namespace Microsoft.AspNetCore.Testing
             Assert.NotNull(versionKey);
             var currentVersion = (string)versionKey.GetValue("CurrentBuildNumber");
             Assert.NotNull(currentVersion);
-            Assert.True(18363 >= int.Parse(currentVersion));
+            Assert.True(18363 >= int.Parse(currentVersion), $"Unexpected build number {currentVersion} on {Environment.OSVersion.Version}.");
         }
     }
 

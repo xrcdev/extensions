@@ -9,6 +9,8 @@ variables:
     value: true
   - name: _PublishUsingPipelines
     value: true
+  - name: PostBuildSign
+    value: true
   - name: _DotNetArtifactsCategory
     value: ASPNETEXTENSIONS
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -20,10 +22,6 @@ variables:
     - name: _InternalRuntimeDownloadArgs
       value: ''
 
-  # used for post-build phases, internal builds only
-  - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - group: DotNet-AspNet-SDLValidation-Params
-
 # CI and PR triggers
 trigger:
   batch: true
@@ -31,7 +29,7 @@ trigger:
     include:
     - master
     - release/*
-    - internal/release/3.*
+    - internal/release/*
 
 pr:
   autoCancel: false
@@ -43,23 +41,25 @@ stages:
 - stage: build
   displayName: Build
   jobs:
-  - job: Code_check
-    displayName: Code check
-    workspace:
-      clean: all
-    pool:
-      vmImage: vs2017-win2016
-    steps:
-    - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-      - task: PowerShell@2
-        displayName: Setup Private Feeds Credentials
-        inputs:
-          filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-          arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
-        env:
-          Token: $(dn-bot-dnceng-artifact-feeds-rw)
-    - powershell: . ./activate.ps1; ./restore.cmd -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
-      displayName: Run eng/scripts/CodeCheck.ps1
+  # Code check
+  - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+    - job: Code_check
+      displayName: Code check
+      workspace:
+        clean: all
+      pool:
+        vmImage: vs2017-win2016
+      steps:
+      - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        - task: PowerShell@2
+          displayName: Setup Private Feeds Credentials
+          inputs:
+            filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
+            arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
+          env:
+            Token: $(dn-bot-dnceng-artifact-feeds-rw)
+      - powershell: . ./activate.ps1; ./restore.cmd -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
+        displayName: Run eng/scripts/CodeCheck.ps1
 
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
@@ -75,10 +75,10 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCorePublic-Pool
-            queue: BuildPool.Windows.10.Amd64.VS2017.Open
+            queue: BuildPool.Server.Amd64.VS2019.Open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCoreInternal-Pool
-            queue: BuildPool.Windows.10.Amd64.VS2017
+            queue: BuildPool.Server.Amd64.VS2019
         variables:
         # Only enable publishing in official builds.
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -140,8 +140,6 @@ stages:
         - script: eng\scripts\ci-flaky-tests.cmd -configuration $(_BuildConfig)
           displayName: Run Flaky Tests
           continueOnError: true
-        - script: dotnet msbuild eng/repo.targets /t:EnsureFunctionalTestLogsPreserved
-          displayName: Ensure functional test logs preserved
         - powershell: eng\scripts\KillProcesses.ps1
           displayName: Kill processes
           condition: always()
@@ -184,33 +182,16 @@ stages:
         displayName: 'Ubuntu 16.04'
         pool:
           vmImage: ubuntu-16.04
-        variables:
-        # Only enable publishing in official builds.
-        - ${{ if and(eq(variables['System.TeamProject'], 'internal'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: _OfficialBuildArgs
-            value: -p:OfficialBuildId=$(Build.BuildNumber)
-        # else
-        - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: _OfficialBuildArgs
-            value: ''
         strategy:
           matrix:
             ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
               Debug:
                 _BuildConfig: Debug
-                _SignType: none
-                _DotNetPublishToBlobFeed : false
             Release:
               _BuildConfig: Release
-              _SignType: none
-              _DotNetPublishToBlobFeed : false
         steps:
         - checkout: self
           clean: true
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
@@ -224,7 +205,6 @@ stages:
             --prepareMachine
             $(_OfficialBuildArgs)
             $(_InternalRuntimeDownloadArgs)
-            /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
           displayName: Build
         - script: eng/scripts/ci-flaky-tests.sh --configuration $(_BuildConfig)
           displayName: Run Flaky Tests
@@ -259,21 +239,17 @@ stages:
             artifactType: Container
             parallel: true
 
-      - job: OSX_10_13
+      - job: OSX_10_14
         displayName: 'OSX'
         pool:
-          vmImage: macOS-10.13
+          vmImage: macOS-10.14
         strategy:
           matrix:
             ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
               Debug:
                 _BuildConfig: Debug
-                _SignType: none
-                _DotNetPublishToBlobFeed : false
             Release:
               _BuildConfig: Release
-              _SignType: none
-              _DotNetPublishToBlobFeed : false
         steps:
         - checkout: self
           clean: true
@@ -360,7 +336,7 @@ stages:
       displayName: Upload package artifacts
       # Only capture source build artifacts in PRs for the sake of inspecting
       # changes that impact source-build. The artifacts from this build pipeline are never actually used.
-      condition: and(succeeded(), eq(variables['Build.Reason'], 'PullRequest'))
+      condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
       inputs:
         pathtoPublish: artifacts/packages/
         artifactName: Source_Build_Packages
@@ -370,20 +346,8 @@ stages:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
-      # Symbol validation isn't being very reliable lately. This should be enabled back
-      # once this issue is resolved: https://github.com/dotnet/arcade/issues/2871
+      publishingInfraVersion: 3
       enableSymbolValidation: false
-      # This is to enable SDL runs part of Post-Build Validation Stage
-      SDLValidationParameters:
-        enable: true
-        continueOnError: false
-        params: ' -SourceToolsList @("policheck","credscan")
-        -TsaInstanceURL $(_TsaInstanceURL)
-        -TsaProjectName $(_TsaProjectName)
-        -TsaNotificationEmail $(_TsaNotificationEmail)
-        -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-        -TsaBugAreaPath $(_TsaBugAreaPath)
-        -TsaIterationPath $(_TsaIterationPath)
-        -TsaRepositoryName "Extensions"
-        -TsaCodebaseName "Extensions"
-        -TsaPublish $True'
+      enableSigningValidation: false
+      enableNugetValidation: false
+      enableSourceLinkValidation: false
